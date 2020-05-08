@@ -1,4 +1,4 @@
-# homebridge-linux-temperature
+# homebridge-linux-diskusage
 
 A homebridge humidity sensor for exposing Linux disk usage.
 Based on a different plugin by Chris Jones at https://github.com/cmsj/homebridge-linux-temperature
