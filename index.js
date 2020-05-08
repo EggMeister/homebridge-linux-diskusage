@@ -40,7 +40,7 @@ LinuxDiskUsageAccessory.prototype =
     this.log("Model " + model);
 
     /** Disk usage */
-    humidityService = new Service.HumiditySensor("Disk usage");
+    humidityService = new Service.HumiditySensor(this.name);
 
     humidityService
       .getCharacteristic(Characteristic.CurrentRelativeHumidity)
