@@ -19,7 +19,12 @@ See original code here: https://github.com/markwj/homebridge-pi
 {
   "accessory": "LinuxDiskUsage",
   "name": "Root disk usage",
-  "diskdevice": "/dev/sda1"
+  "diskdevice": "/dev/sda1",
+  "diskdevices": {
+      "root": "/dev/sda1",
+      "share": "/dev/sdb1",
+      "data": "/dev/sdc1"
+  }
 }
 ```
 
@@ -27,5 +32,7 @@ Fields:
 
 * `accessory` must be "LinuxDiskUsage" (required).
 * `name` is the name of the published accessory (required).
-* `sensor_path` is the disk device to monitor. See `mount` of `df`.
+* `diskdevice` is the disk device to monitor, if you want to monitor a single device. Use Linux commands `mount` of `df` to get devices.
+* `diskdevices`: key/value pairs for name and device location, if you want to monitor multiple disks in a single 'tile'.
 
+Either `diskdevice` or `diskdevices` must be used. If both exist, `diskdevices` is used.

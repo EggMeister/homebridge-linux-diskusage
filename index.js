@@ -14,45 +14,64 @@ function LinuxDiskUsageAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.diskDevice = config['diskdevice'];
+  this.diskDevices = config['diskdevices'];
 }
 
 LinuxDiskUsageAccessory.prototype =
 {
-  getDiskUsage: function (callback) {
-    this.percentage = execSync("df " + this.diskDevice + " --output=pcent|sed 1d|cut -d'%' -f1|awk '{$1=$1};1'", { encoding: "utf8" })
-    this.log("Disk usage at " + this.percentage);
-    humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, this.percentage);
-    callback(null, this.percentage)
-  },
-
   identify: function (callback) {
     this.log("Identify requested!");
     callback(); // success
   },
 
   getServices: function () {
+    var services = [];
+
     /** accessory information */
     var informationService = new Service.AccessoryInformation();
     var model = execSync("cat /proc/cpuinfo | grep 'model name' | uniq | cut -d':' -f2|awk '{$1=$1};1'", { encoding: "utf8" });
     informationService
       .setCharacteristic(Characteristic.Manufacturer, execSync("lsb_release -d|cut -d':' -f2|awk '{$1=$1};1'", { encoding: "utf8" }))
-      .setCharacteristic(Characteristic.Model, model);
-    this.log("Model " + model);
+      .setCharacteristic(Characteristic.Model, model)
+      .setCharacteristic(Characteristic.Name, this.name);
 
-    /** Disk usage */
-    humidityService = new Service.HumiditySensor(this.name);
+    services.push(informationService);
 
-    humidityService
-      .getCharacteristic(Characteristic.CurrentRelativeHumidity)
-      .on('get', this.getDiskUsage.bind(this));
+    if ((!this.diskDevices || Object.keys(this.diskDevices).length == 0) && this.diskDevice) {
+      var o = {};
+      o[this.name] = this.diskDevice
+      this.diskDevices = o;
+    } else {
+      this.log("Error: no disk devices found in configuration")
+    }
 
-    humidityService
-      .getCharacteristic(Characteristic.Name)
-      .on('get', callback => {
-        callback(null, this.name);
-      });
+    for (let [name, device] of Object.entries(this.diskDevices)) {
+      console.log(name, device);
 
-    return [informationService, humidityService];
+      humidityService = new Service.HumiditySensor(name);
+
+      humidityService
+        .getCharacteristic(Characteristic.CurrentRelativeHumidity)
+        .on('get', (callback) => {
+          let percentage = execSync("df " + device + " --output=pcent|sed 1d|cut -d'%' -f1|awk '{$1=$1};1'| tr -d '\n'", { encoding: "utf8" })
+          this.log("Disk usage for " + name + " at " + percentage);
+          humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, percentage);
+          callback(null, percentage)
+        });
+
+      humidityService
+        .getCharacteristic(Characteristic.Name)
+        .on('get', callback => {
+          callback(null, this.name);
+        });
+      
+      humidityService.subtype = name;
+
+      services.push(humidityService);
+    }
+
+
+    return services;
   }
 };
 
