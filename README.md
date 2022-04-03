@@ -28,7 +28,30 @@ See original code here: https://github.com/markwj/homebridge-pi
 }
 ```
 
-Fields:
+## With [homebridge-docker]()
+
+You can use the following configuration:
+
+```json
+{
+  "accessory": "LinuxDiskUsage",
+  "name": "Root disk usage",
+  "diskdevice": "/homebridge"
+}
+```
+
+If any issues appear, run the `df` command within the docker container using `docker exec homebridge df` and make sure your docker container root is `/homebridge`. Example output:
+
+```bash
+root@raspberrypi:/opt/docker/homebridge# docker exec homebridge df
+Filesystem     1K-blocks     Used Available Use% Mounted on
+overlay         61100032 37322064  21251984  64% /
+tmpfs              65536        0     65536   0% /dev
+tmpfs            1942148        0   1942148   0% /sys/fs/cgroup
+/dev/mmcblk0p2  61100032 37322064  21251984  64% /homebridge
+```
+
+## Fields
 
 * `accessory` must be "LinuxDiskUsage" (required).
 * `name` is the name of the published accessory (required).
